@@ -1,18 +1,72 @@
 const express = require('express')
-const port = 4000;
+
 const server = express();
+const db = require('./data/db');
 
+server.use(express.json());
+
+
+server.listen(4000, (req, res) => {
+    console.log('server is listening');
+})
+
+
+// test
+// server.get('/users', (req, res) => {
+//     res.send('we are here')
+// })
+
+
+
+// time to read
 server.get('/api/users', (req, res) => {
-    res.send('hello send back string')
+    db.find()
+        .then(users => {
+            res.status(200).json(users);
+        })
+        .catch(err => {
+            res.status(500).json({
+                message: err,
+                success: false
+            });
+        })
 })
 
 
-server.listen(port, () => {
-    console.log(`server listening on ${port}`)
+
+server.post('/api/users', (req, res) => {
+    const userInfo = req.body;
+    db.insert(userInfo);
+
+    if (!userInfo.name || !userInfo.bio) {
+        res.status(404).json({
+            success: false,
+            message: 'there was an error'
+        })
+    } else {
+        res.status(201).json({success: 'it worked'})
+    }
 })
 
 
+server.put('/api/users/:id', (req, res) => {
+    const userInfo = req.body
+    const id = req.body.id
 
+    db.update(userInfo, id)
+        .then(user => {
+            if (user) {
+                res.status(200).json({success: true, user});
+            } else {
+                res.status(404).json({success: false, message: `id ${id} does not exist`})
+            }
+        })
+        .catch(err => {
+            res.status(500).json({success: false, err})
+        })
+
+    
+})
 
 
 
